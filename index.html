@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DrainOS — Smart Drain Monitoring & Safety System</title>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#050f16;--p:#0b1d29;--p2:#10293a;--ln:#1b4257;--tx:#dbeaf1;--mu:#7f9fb0;--cy:#19c2d8;--ok:#2fd39a;--wn:#f5b333;--cr:#ff4b4b;--r:10px}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--tx);font:14px/1.5 'IBM Plex Sans',system-ui,sans-serif;min-height:100vh;padding-bottom:44px;
+background-image:linear-gradient(rgba(25,194,216,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(25,194,216,.05) 1px,transparent 1px);background-size:36px 36px}
+h1,h2,h3,.big{font-family:'Chakra Petch',system-ui,sans-serif}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:12px 18px;background:rgba(5,15,22,.92);border-bottom:1px solid var(--ln);position:sticky;top:0;z-index:20;backdrop-filter:blur(8px)}
+.brand h1{font-size:24px;letter-spacing:.5px}.brand h1 b{color:var(--cy)}.brand small{display:block;color:var(--mu);font-size:11px}
+.hr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.badge{padding:4px 12px;border-radius:99px;border:1px solid var(--ln);font-size:12px;display:flex;gap:6px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--wn)}
+.online .dot{background:var(--ok);box-shadow:0 0 8px var(--ok);animation:pl 1.6s infinite}.offline .dot{background:var(--cr)}
+@keyframes pl{50%{opacity:.35}}
+button{font:inherit;cursor:pointer;color:var(--tx);background:var(--p2);border:1px solid var(--ln);border-radius:8px;padding:6px 12px}
+button:hover,button.on{border-color:var(--cy);color:var(--cy)}
+nav{display:flex;gap:6px;overflow-x:auto;padding:10px 18px;border-bottom:1px solid var(--ln)}nav button{white-space:nowrap}
+main{padding:16px 18px;max-width:1300px;margin:auto}
+.pg{display:none}.pg.on{display:block}
+.g{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-bottom:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.c{background:linear-gradient(160deg,var(--p2),var(--p));border:1px solid var(--ln);border-radius:var(--r);padding:16px;position:relative;overflow:hidden}
+.c h3{font-size:13px;color:var(--mu);font-weight:500;margin-bottom:8px}
+.big{font-size:40px;line-height:1.1;font-weight:700;transition:color .4s}.big small{font-size:16px;color:var(--mu)}
+.NORMAL{--s:var(--ok)}.WARNING{--s:var(--wn)}.CRITICAL_ALERT{--s:var(--cr)}
+.st{color:var(--s,var(--mu))}
+.bar{height:8px;background:#04121a;border-radius:9px;margin-top:8px;position:relative;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--s,var(--cy));transition:width .6s;border-radius:9px}
+.tk{position:absolute;top:0;bottom:0;width:2px;background:#fff8}
+#banner{display:none;background:var(--cr);color:#fff;padding:12px 16px;border-radius:var(--r);margin-bottom:14px;font-weight:500;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;animation:al 1s infinite}
+@keyframes al{50%{box-shadow:0 0 0 6px #ff4b4b44}}
+#ticker{position:fixed;bottom:0;left:0;right:0;height:34px;background:#1a0505;border-top:2px solid var(--cr);color:#ffb3b3;display:none;align-items:center;overflow:hidden;z-index:30;white-space:nowrap}
+#ticker span{padding-left:100%;animation:tk 22s linear infinite}@keyframes tk{to{transform:translateX(-100%)}}
+canvas{max-height:220px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--ln)}th{color:var(--mu);font-weight:500}
+.tw{overflow-x:auto}
+.pill{padding:2px 9px;border-radius:99px;font-size:11px;background:color-mix(in srgb,var(--s) 22%,transparent);color:var(--s);border:1px solid var(--s)}
+#feed{list-style:none;max-height:230px;overflow:auto;font-size:12px;font-family:ui-monospace,monospace;padding:0}
+#feed li{padding:4px 0;border-bottom:1px dashed var(--ln)}
+.zc{border-left:4px solid var(--s,var(--ln))}
+.zc .row{display:flex;justify-content:space-between;color:var(--mu);font-size:12px;margin-top:8px}
+.lcd{background:#7fa05a;color:#1c2a10;font:20px/1.3 ui-monospace,monospace;padding:12px 16px;border-radius:8px;box-shadow:inset 0 0 14px #0006;border:4px solid #26332a;width:max-content;max-width:100%;overflow:hidden;letter-spacing:2px}
+.hw{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--ln)}
+#mapw{position:relative;height:460px;border-radius:var(--r);overflow:hidden;border:1px solid var(--ln)}
+#mapw iframe{width:100%;height:100%;border:0;filter:invert(.9) hue-rotate(180deg) saturate(.7)}
+.mk{position:absolute;width:22px;height:22px;margin:-22px 0 0 -11px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--s,var(--mu));border:2px solid #fff;cursor:pointer;box-shadow:0 0 12px var(--s)}
+#pop{position:absolute;right:10px;top:10px;background:var(--p);border:1px solid var(--ln);padding:12px;border-radius:8px;min-width:200px;display:none;z-index:5}
+.lg{display:flex;gap:14px;margin-top:10px;font-size:12px;color:var(--mu)}
+.lg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.rg{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.mut{color:var(--mu)}
+@media(max-width:600px){.big{font-size:32px}main{padding:12px}}
+@media print{header,nav,#ticker,.rg,#banner{display:none!important}body{background:#fff;color:#000}.pg{display:none}#p-rec{display:block}.c{border:0}th,td{color:#000}}
+</style></head><body>
+<header>
+<div class="brand"><h1>Drain<b>OS</b></h1><small>Smart Drain Monitoring &amp; Safety System</small></div>
+<div class="hr"><span id="live" class="badge"><i class="dot"></i><span id="lt">CONNECTING</span></span>
+<span class="badge">Synced <b id="sync" style="margin-left:4px">--</b></span>
+<button id="mute" title="Mute / unmute buzzer">🔊 Buzzer on</button></div>
+</header>
+<nav id="nav"></nav>
+<main>
+<div id="banner"><span id="bt">⚠ CRITICAL CONDITION</span><button onclick="dispatch()">Dispatch team</button></div>
+
+<section class="pg on" id="p-dash">
+<div class="g">
+<div class="c" id="cD"><h3>Water depth</h3><div class="big"><span id="vD">--</span> <small>cm</small></div><div class="bar"><i id="bD"></i><span class="tk" style="left:80%"></span><span class="tk" style="left:90%"></span></div></div>
+<div class="c" id="cG"><h3>Toxic gas</h3><div class="big"><span id="vG">--</span> <small>ppm</small></div><div class="bar"><i id="bG"></i><span class="tk" style="left:20%"></span><span class="tk" style="left:60%"></span></div></div>
+<div class="c" id="cS"><h3>System status</h3><div class="big st" id="vS" style="font-size:26px">AWAITING</div><div class="mut" id="vZ">Awaiting sensor data...</div></div>
+<div class="c"><h3>Active zones</h3><div class="big" id="vA">0</div><div class="mut">Packets this session: <b id="pk">0</b></div></div>
+</div>
+<div class="g g2">
+<div class="c"><h3>Predictive intelligence</h3>
+<div style="display:flex;gap:20px;flex-wrap:wrap"><div><div class="big" id="risk">--</div><div class="mut">Risk score / 100</div></div>
+<div><div id="eta" style="font-size:18px;font-weight:500">Awaiting sensor data...</div><div class="mut">Trend: <b id="trend">--</b> · Slope <b id="slope">--</b> cm/reading</div><div class="mut">Confidence: <b id="conf">--</b></div></div></div>
+<div class="bar"><i id="bR"></i></div></div>
+<div class="c"><h3>Live packet feed</h3><ul id="feed"><li class="mut">Awaiting sensor data...</li></ul></div>
+</div>
+<div class="g g2">
+<div class="c"><h3>Thresholds (matches ESP32 firmware)</h3>
+<div class="mut">Water depth: NORMAL &lt;40 · WARNING 40–45 · CRITICAL &gt;45 cm</div><div class="bar" style="background:linear-gradient(90deg,var(--ok) 80%,var(--wn) 80% 90%,var(--cr) 90%);opacity:.5"><span class="tk" id="thD" style="left:0;background:#fff"></span></div>
+<div class="mut" style="margin-top:14px">Gas level: NORMAL &lt;200 · WARNING 200–600 · CRITICAL &gt;600 ppm</div><div class="bar" style="background:linear-gradient(90deg,var(--ok) 20%,var(--wn) 20% 60%,var(--cr) 60%);opacity:.5"><span class="tk" id="thG" style="left:0;background:#fff"></span></div></div>
+<div class="c"><h3>Zone overview</h3><div id="zmini" class="mut">Awaiting sensor data...</div></div>
+</div></section>
+
+<section class="pg" id="p-ana">
+<div class="rg" id="rng"><button data-h="24" class="on">24h</button><button data-h="168">7d</button><button data-h="720">30d</button></div>
+<div class="g"><div class="c"><h3>Average depth</h3><div class="big" id="sAvg">--</div></div><div class="c"><h3>Max depth / gas</h3><div class="big" id="sMax" style="font-size:28px">--</div></div><div class="c"><h3>Alert rate</h3><div class="big" id="sAl">--</div></div><div class="c"><h3>Readings in range</h3><div class="big" id="sN">--</div></div></div>
+<div class="g g2"><div class="c"><h3>Water depth trend (last 30)</h3><canvas id="chD"></canvas></div><div class="c"><h3>Gas level trend (last 30)</h3><canvas id="chG"></canvas></div></div>
+<div class="c" style="max-width:420px"><h3>Status distribution</h3><canvas id="chS"></canvas></div></section>
+
+<section class="pg" id="p-zon"><div class="g" id="zones"></div></section>
+
+<section class="pg" id="p-map"><div id="mapw"><iframe id="mf" title="Ranchi map"></iframe><div id="pop"></div></div>
+<div class="lg"><span><i style="background:var(--ok)"></i>Normal</span><span><i style="background:var(--wn)"></i>Warning</span><span><i style="background:var(--cr)"></i>Critical</span><span>Centered on Ranchi (23.3441, 85.3096)</span></div></section>
+
+<section class="pg" id="p-rec"><div class="c">
+<div class="rg" id="flt"><button data-f="all" class="on">All</button><button data-f="NORMAL">Normal</button><button data-f="WARNING">Warning</button><button data-f="CRITICAL_ALERT">Critical</button><button onclick="exportCSV()">Export CSV</button><button onclick="print()">Print</button></div>
+<div class="tw"><table><thead><tr><th>Timestamp</th><th>Zone</th><th>Depth</th><th>Gas</th><th>Status</th></tr></thead><tbody id="rb"></tbody></table></div></div></section>
+
+<section class="pg" id="p-reg"><div class="g" id="reg"></div></section>
+
+<section class="pg" id="p-dis"><div class="c"><div class="rg"><button onclick="dispatch()">New dispatch</button><button onclick="localStorage.removeItem('dos_d');renderDis()">Clear log</button></div>
+<div class="tw"><table><thead><tr><th>ID</th><th>Zone</th><th>Severity</th><th>Officer</th><th>Time</th><th>Status</th></tr></thead><tbody id="db"></tbody></table></div></div></section>
+
+<section class="pg" id="p-hw"><div class="g g2"><div class="c"><h3>Hardware components</h3><div id="hw"></div></div>
+<div class="c"><h3>LCD 16×2 replica (mirrors ESP32)</h3><div class="lcd" id="lcd"></div><div class="mut" style="margin-top:10px">Screen <b id="lcdn">1</b> / 5 · rotates every 3 s</div></div></div></section>
+
+<section class="pg" id="p-abt"><div class="g g2">
+<div class="c"><h3>Project</h3><h2 style="margin-bottom:6px">Smart Drain Monitoring &amp; Safety System</h2>
+<p class="mut">Theme: Environment &amp; Sustainability<br>Sub-theme: Smart Drainage &amp; Urban Water Management Systems</p></div>
+<div class="c"><h3>Team</h3><p><b>Shivam Kumar Yadav</b> (Class 10) — Hardware &amp; IoT Lead</p><p><b>Aryan Kumar</b> (Class 10) — Software &amp; Cloud Lead</p></div>
+<div class="c"><h3>School &amp; event</h3><p>Sri Ramakrishna Sarada Ashrama Vivekananda Central School, Hazaribag, Jharkhand</p><p class="mut">CBSE Skill Expo, Ranchi · 2026 – 2027</p></div>
+<div class="c"><h3>Tech stack</h3><p class="mut">ESP32 · HC-SR04 · MQ-135 · LCD 16×2 · Buzzer · LED<br>Supabase Realtime (PostgreSQL) · Chart.js · Web Audio API · OpenStreetMap</p></div>
+</div></section>
+</main>
+<div id="ticker"><span id="tkt"></span></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const SUPABASE_URL='https://epwtngtbnyvrnzxeezlf.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwd3RuZ3Ribnl2cm56eGVlemxmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA1OTA0NjksImV4cCI6MjEwNjE2NjQ2OX0.0FR9hFEO7nD05vkcpK6L5QeUi4ImBSNJsXuwEyQ66is';
+const DEPTH_WARN=40,DEPTH_CRIT=45,GAS_WARN=200,GAS_CRIT=600,DRAIN_HEIGHT=50,MAX_GAS=1000;
+const DEF_ZONES=['Zone 1 - Main Market','Zone 2 - Industrial Area','Zone 3 - Civil Lines'];
+const C=[23.3441,85.3096];
+let allReadings=[],latestPerZone={},activeFilter='all',sessionStart=Date.now(),packetCount=0,isMuted=false,lastBuzzerState='NORMAL',rangeData=[],rangeH=24,sb,chan,audioCtx,buzzT;
+const $=i=>document.getElementById(i);
+const E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const num=v=>Number.isFinite(+v)?+v:0;
+const norm=r=>({...r,water_depth_cm:num(r.water_depth_cm),gas_level_ppm:num(r.gas_level_ppm),zone_name:r.zone_name||'Unassigned',system_status:r.system_status||'NORMAL'});
+function getStatus(r){if(r.system_status==='CRITICAL_ALERT'||r.water_depth_cm>DEPTH_CRIT||r.gas_level_ppm>GAS_CRIT)return'CRITICAL_ALERT';if(r.water_depth_cm>DEPTH_WARN||r.gas_level_ppm>GAS_WARN)return'WARNING';return'NORMAL'}
+const T=t=>new Date(t).toLocaleString();
+const lbl=s=>s==='CRITICAL_ALERT'?'CRITICAL':s;
+
+/* nav */
+const tabs=[['dash','Dashboard'],['ana','Analytics'],['zon','Zones'],['map','Map'],['rec','Records'],['reg','Registry'],['dis','Dispatch'],['hw','Hardware'],['abt','About']];
+$('nav').innerHTML=tabs.map((t,i)=>`<button data-t="${t[0]}" class="${i?'':'on'}">${t[1]}</button>`).join('');
+$('nav').onclick=e=>{const t=e.target.dataset.t;if(!t)return;initAudio();document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b===e.target));document.querySelectorAll('.pg').forEach(p=>p.classList.toggle('on',p.id==='p-'+t));if(t==='ana')updateCharts()};
+document.body.addEventListener('click',initAudio,{once:true});
+
+/* audio */
+function initAudio(){if(!audioCtx){try{audioCtx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume()}
+function playBeep(f,ms,vol){if(isMuted||!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='square';o.frequency.value=f;g.gain.value=vol;o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+ms/1000)}
+function buzz(state){clearInterval(buzzT);if(state==='WARNING'){playBeep(700,200,.12);buzzT=setInterval(()=>playBeep(700,200,.12),3000)}
+else if(state==='CRITICAL_ALERT'){const t=()=>[0,320,640].forEach(d=>setTimeout(()=>playBeep(1200,120,.2),d));t();buzzT=setInterval(t,1200)}}
+$('mute').onclick=()=>{initAudio();isMuted=!isMuted;$('mute').textContent=isMuted?'🔇 Buzzer muted':'🔊 Buzzer on'};
+
+/* state */
+function rebuildZones(){latestPerZone={};for(const r of allReadings){if(!latestPerZone[r.zone_name]||new Date(r.created_at)>new Date(latestPerZone[r.zone_name].created_at))latestPerZone[r.zone_name]=r}}
+function worst(){let w='NORMAL';for(const z in latestPerZone){const s=getStatus(latestPerZone[z]);if(s==='CRITICAL_ALERT')return s;if(s==='WARNING')w=s}return w}
+function updateAll(r){
+ const s=getStatus(r);
+ $('vD').textContent=r.water_depth_cm;$('vG').textContent=r.gas_level_ppm;
+ $('cD').className='c '+(r.water_depth_cm>DEPTH_CRIT?'CRITICAL_ALERT':r.water_depth_cm>DEPTH_WARN?'WARNING':'NORMAL');
+ $('cG').className='c '+(r.gas_level_ppm>GAS_CRIT?'CRITICAL_ALERT':r.gas_level_ppm>GAS_WARN?'WARNING':'NORMAL');
+ $('bD').style.width=Math.min(r.water_depth_cm/DRAIN_HEIGHT*100,100)+'%';$('bG').style.width=Math.min(r.gas_level_ppm/MAX_GAS*100,100)+'%';
+ $('thD').style.left=Math.min(r.water_depth_cm/DRAIN_HEIGHT*100,100)+'%';$('thG').style.left=Math.min(r.gas_level_ppm/MAX_GAS*100,100)+'%';
+ $('cS').className='c '+s;$('vS').textContent=lbl(s);$('vZ').textContent=r.zone_name;
+ $('sync').textContent=new Date(r.created_at).toLocaleTimeString();
+ $('vA').textContent=Object.keys(latestPerZone).length;$('pk').textContent=packetCount;
+ updatePrediction();updateTicker();renderZones();renderRecords();renderMap();renderHW();
+ const w=worst();if(w!==lastBuzzerState){lastBuzzerState=w;buzz(w)}
+}
+function updateFeed(r){const ul=$('feed');if(ul.firstChild&&ul.firstChild.className==='mut')ul.innerHTML='';const li=document.createElement('li');const s=getStatus(r);li.className=s;li.innerHTML=`<span class="st">●</span> ${new Date(r.created_at).toLocaleTimeString()} · ${E(r.zone_name)} · ${r.water_depth_cm}cm · ${r.gas_level_ppm}ppm · ${lbl(s)}`;ul.prepend(li);while(ul.children.length>30)ul.lastChild.remove()}
+
+/* prediction */
+function updatePrediction(){
+ const a=allReadings.slice(0,8).reverse();if(!a.length)return;
+ const n=a.length,ys=a.map(x=>x.water_depth_cm);let slope=0;
+ if(n>1){const mx=(n-1)/2,my=ys.reduce((p,c)=>p+c,0)/n;let nu=0,de=0;ys.forEach((y,i)=>{nu+=(i-mx)*(y-my);de+=(i-mx)**2});slope=nu/de}
+ const r=allReadings[0],d=r.water_depth_cm,g=r.gas_level_ppm;
+ const risk=Math.round(Math.min(d/50*40,40)+Math.min(g/10,40)+(slope>2?20:slope>1?12:slope>0?6:0));
+ $('risk').textContent=risk;$('risk').className='big '+(risk>=70?'CRITICAL_ALERT':risk>=40?'WARNING':'NORMAL');$('risk').classList.add('st');
+ $('bR').style.width=Math.min(risk,100)+'%';$('bR').parentNode.className='bar '+(risk>=70?'CRITICAL_ALERT':risk>=40?'WARNING':'NORMAL');
+ $('slope').textContent=slope.toFixed(2);
+ $('trend').textContent=slope>0.05?'Rising ▲':slope<-0.05?'Falling ▼':'Stable ▬';
+ $('conf').textContent=allReadings.length>=15?'HIGH':allReadings.length>=5?'MEDIUM':'LOW';
+ if(d>DEPTH_CRIT)$('eta').textContent='Overflow level reached';
+ else if(slope>0.05){const m=(DEPTH_CRIT-d)/slope*0.5/60;$('eta').textContent='Overflow in ~'+(m<1?'<1':Math.round(m))+' min'}
+ else $('eta').textContent='No overflow predicted';
+}
+function updateTicker(){const c=Object.values(latestPerZone).filter(r=>getStatus(r)==='CRITICAL_ALERT');const on=c.length>0;
+ $('banner').style.display=on?'flex':'none';$('ticker').style.display=on?'flex':'none';
+ if(on){const t=c.map(r=>`${r.zone_name}: ${r.water_depth_cm} cm / ${r.gas_level_ppm} ppm`).join('   ///   ');$('bt').textContent='⚠ CRITICAL — '+t;$('tkt').textContent='🚨 EMERGENCY ALERT  ///  '+t+'  ///  Dispatch emergency team immediately'}}
+
+/* zones / registry */
+function zoneList(){const k=Object.keys(latestPerZone);DEF_ZONES.forEach(z=>{if(!k.includes(z))k.push(z)});return k.sort()}
+function renderZones(){
+ $('zones').innerHTML=zoneList().map(z=>{const r=latestPerZone[z];if(!r)return`<div class="c"><h3>${E(z)}</h3><div class="mut">Awaiting sensor data...</div></div>`;const s=getStatus(r);
+ return`<div class="c zc ${s}"><h3>${E(z)}</h3><span class="pill">${lbl(s)}</span>
+ <div class="row"><span>Depth</span><b>${r.water_depth_cm} cm</b></div><div class="bar"><i style="width:${Math.min(r.water_depth_cm/DRAIN_HEIGHT*100,100)}%"></i></div>
+ <div class="row"><span>Gas</span><b>${r.gas_level_ppm} ppm</b></div><div class="bar"><i style="width:${Math.min(r.gas_level_ppm/MAX_GAS*100,100)}%"></i></div>
+ <div class="row"><span>Updated</span><span>${new Date(r.created_at).toLocaleTimeString()}</span></div></div>`}).join('');
+ $('zmini').innerHTML=Object.keys(latestPerZone).map(z=>{const r=latestPerZone[z],s=getStatus(r);return`<div class="hw ${s}"><span>${E(z)}</span><span class="pill">${lbl(s)}</span></div>`}).join('')||'Awaiting sensor data...';
+ $('reg').innerHTML=zoneList().map(z=>{const r=latestPerZone[z];if(!r)return`<div class="c"><h3>${E(z)}</h3><div class="mut">Awaiting sensor data...</div></div>`;
+ const on=Date.now()-new Date(r.created_at)<120000;
+ return`<div class="c ${getStatus(r)}"><h3>${E(z)}</h3><p>📍 ${(+r.latitude||0).toFixed(5)}, ${(+r.longitude||0).toFixed(5)}</p><p>Sensor node: <b class="st" style="--s:var(${on?'--ok':'--cr'})">${on?'ONLINE':'OFFLINE'}</b></p><p>Last reading: ${T(r.created_at)}</p><p>Depth <b>${r.water_depth_cm} cm</b> · Gas <b>${r.gas_level_ppm} ppm</b></p></div>`}).join('')}
+
+/* map */
+function initMap(){const b=[C[1]-.07,C[0]-.045,C[1]+.07,C[0]+.045];$('mf').src=`https://www.openstreetmap.org/export/embed.html?bbox=${b.join('%2C')}&layer=mapnik&marker=${C[0]}%2C${C[1]}`}
+function renderMap(){document.querySelectorAll('.mk').forEach(m=>m.remove());
+ for(const z in latestPerZone){const r=latestPerZone[z];const lat=+r.latitude,lng=+r.longitude;if(!lat||!lng)continue;
+ const x=(lng-(C[1]-.07))/.14*100,y=(1-(lat-(C[0]-.045))/.09)*100;if(x<0||x>100||y<0||y>100)continue;
+ const m=document.createElement('div');m.className='mk '+getStatus(r);m.style.left=x+'%';m.style.top=y+'%';m.title=z;
+ m.onclick=()=>{const p=$('pop');p.className=getStatus(r);p.style.display='block';p.innerHTML=`<b>${E(z)}</b><br><span class="pill">${lbl(getStatus(r))}</span><br>Depth ${r.water_depth_cm} cm<br>Gas ${r.gas_level_ppm} ppm<br><span class="mut">${T(r.created_at)}</span>`};
+ $('mapw').appendChild(m)}}
+
+/* records */
+function renderRecords(){const rows=allReadings.filter(r=>activeFilter==='all'||getStatus(r)===activeFilter).slice(0,50);
+ $('rb').innerHTML=rows.map(r=>{const s=getStatus(r);return`<tr class="${s}"><td>${T(r.created_at)}</td><td>${E(r.zone_name)}</td><td>${r.water_depth_cm} cm</td><td>${r.gas_level_ppm} ppm</td><td><span class="pill">${lbl(s)}</span></td></tr>`}).join('')||'<tr><td colspan=5 class="mut">Awaiting sensor data...</td></tr>'}
+$('flt').onclick=e=>{const f=e.target.dataset.f;if(!f)return;activeFilter=f;document.querySelectorAll('#flt [data-f]').forEach(b=>b.classList.toggle('on',b===e.target));renderRecords()};
+function exportCSV(){const rows=allReadings.filter(r=>activeFilter==='all'||getStatus(r)===activeFilter).slice(0,50);
+ const csv=['timestamp,zone,depth_cm,gas_ppm,status'].concat(rows.map(r=>[r.created_at,`"${r.zone_name}"`,r.water_depth_cm,r.gas_level_ppm,getStatus(r)].join(','))).join('\n');
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='drainos_records.csv';a.click()}
+
+/* charts */
+let chD,chG,chS;
+function mk(id,col){return new Chart($(id),{type:'line',data:{labels:[],datasets:[{data:[],borderColor:col,backgroundColor:col+'22',fill:true,tension:.4,pointRadius:2}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#7f9fb0',maxTicksLimit:5},grid:{color:'#1b425755'}},y:{ticks:{color:'#7f9fb0'},grid:{color:'#1b425755'},beginAtZero:true}}}})}
+function initCharts(){Chart.defaults.color='#7f9fb0';chD=mk('chD','#19c2d8');chG=mk('chG','#f5b333');
+ chS=new Chart($('chS'),{type:'doughnut',data:{labels:['Normal','Warning','Critical'],datasets:[{data:[0,0,0],backgroundColor:['#2fd39a','#f5b333','#ff4b4b'],borderColor:'#0b1d29'}]},options:{plugins:{legend:{labels:{color:'#dbeaf1'}}}}})}
+function updateCharts(){if(!chD)return;const a=allReadings.slice(0,30).reverse(),lb=a.map(r=>new Date(r.created_at).toLocaleTimeString());
+ chD.data.labels=lb;chD.data.datasets[0].data=a.map(r=>r.water_depth_cm);chD.update('none');
+ chG.data.labels=lb;chG.data.datasets[0].data=a.map(r=>r.gas_level_ppm);chG.update('none');
+ const d=rangeData.length?rangeData:allReadings,n=d.length,c=[0,0,0];d.forEach(r=>{const s=getStatus(r);c[s==='NORMAL'?0:s==='WARNING'?1:2]++});
+ chS.data.datasets[0].data=c;chS.update('none');
+ $('sN').textContent=n;if(n){$('sAvg').innerHTML=(d.reduce((p,r)=>p+r.water_depth_cm,0)/n).toFixed(1)+' <small>cm</small>';$('sMax').textContent=Math.max(...d.map(r=>r.water_depth_cm))+' cm / '+Math.max(...d.map(r=>r.gas_level_ppm))+' ppm';$('sAl').textContent=Math.round((c[1]+c[2])/n*100)+'%'}}
+$('rng').onclick=e=>{const h=e.target.dataset.h;if(!h)return;rangeH=+h;document.querySelectorAll('#rng button').forEach(b=>b.classList.toggle('on',b===e.target));loadRange()};
+async function loadRange(){try{const {data,error}=await sb.from('drain_telemetry').select('*').gte('created_at',new Date(Date.now()-rangeH*3600e3).toISOString()).order('created_at',{ascending:false}).limit(1000);if(error)throw error;rangeData=data.map(norm)}catch(e){console.error(e);rangeData=[]}updateCharts()}
+
+/* hardware + LCD */
+function renderHW(){const r=allReadings[0];const on=r&&Date.now()-new Date(r.created_at)<120000;
+ const items=[['ESP32 microcontroller',on],['HC-SR04 ultrasonic',on&&r.water_depth_cm!=null],['MQ-135 gas sensor',on&&r.gas_level_ppm!=null],['LCD 16×2 display',on],['Buzzer',on],['Status LED',on]];
+ $('hw').innerHTML=items.map(i=>`<div class="hw"><span>${i[0]}</span><b class="st" style="--s:var(${i[1]?'--ok':'--cr'})">● ${i[1]?'ONLINE':'OFFLINE'}</b></div>`).join('')}
+let lcdI=0;
+function lcd(){const r=allReadings[0],p=(s,w=16)=>String(s).padEnd(w).slice(0,w);let a,b;
+ if(!r){a='SMART DRAIN v3.0';b='Awaiting data...'}else{const s=getStatus(r),sl=allReadings.slice(0,8).reverse();let slope=0;if(sl.length>1)slope=(sl[sl.length-1].water_depth_cm-sl[0].water_depth_cm)/(sl.length-1);
+ const up=Math.floor((Date.now()-sessionStart)/1000);
+ [[ 'SMART DRAIN v3.0',`D:${r.water_depth_cm}cm G:${r.gas_level_ppm}ppm`],['SYSTEM STATUS',lbl(s)],['PREDICTION',slope>0.05&&r.water_depth_cm<=DEPTH_CRIT?'OVF ~'+Math.round((DEPTH_CRIT-r.water_depth_cm)/slope*.5/60)+' min':'No overflow'],['SYSTEM HEALTH',(navigator.onLine?'WiFi OK ':'WiFi -- ')+Math.floor(up/60)+'m'+up%60+'s'],['TREND','Rate '+slope.toFixed(2)+' cm/s']].forEach((x,i)=>{if(i===lcdI%5){a=x[0];b=x[1]}})}
+ $('lcd').innerHTML=E(p(a)).replace(/ /g,'&nbsp;')+'<br>'+E(p(b)).replace(/ /g,'&nbsp;');$('lcdn').textContent=lcdI%5+1;lcdI++}
+setInterval(lcd,3000);setInterval(renderHW,10000);lcd();
+
+/* dispatch */
+const getD=()=>{try{return JSON.parse(localStorage.getItem('dos_d')||'[]')}catch(e){return[]}};
+function dispatch(){const cr=Object.values(latestPerZone).filter(r=>getStatus(r)!=='NORMAL');const zone=(cr[0]||allReadings[0]||{}).zone_name||prompt('Zone?')||'Unknown';
+ const off=prompt('Officer name for dispatch to '+zone+':');if(!off)return;const sev=cr[0]?lbl(getStatus(cr[0])):'MANUAL';
+ const l=getD();l.unshift({id:'DSP-'+String(l.length+1).padStart(3,'0'),zone,sev,off,t:new Date().toISOString(),st:'DISPATCHED'});
+ try{localStorage.setItem('dos_d',JSON.stringify(l))}catch(e){}renderDis()}
+function renderDis(){$('db').innerHTML=getD().map(d=>`<tr><td>${E(d.id)}</td><td>${E(d.zone)}</td><td>${E(d.sev)}</td><td>${E(d.off)}</td><td>${T(d.t)}</td><td>${E(d.st)}</td></tr>`).join('')||'<tr><td colspan=6 class="mut">No dispatches yet.</td></tr>'}
+
+/* live status + supabase */
+function setLive(s){$('live').className='badge '+s;$('lt').textContent=s==='online'?'LIVE':s==='offline'?'OFFLINE':'CONNECTING'}
+function onInsert(row){const r=norm(row);packetCount++;allReadings.unshift(r);if(allReadings.length>300)allReadings.length=300;
+ if(new Date(r.created_at)>=new Date(latestPerZone[r.zone_name]?.created_at||0))latestPerZone[r.zone_name]=r;
+ updateFeed(r);updateAll(allReadings[0]);updateCharts();if(rangeData.length){rangeData.unshift(r)}}
+function subscribe(){if(chan)sb.removeChannel(chan);setLive('connecting');
+ chan=sb.channel('drainos-realtime').on('postgres_changes',{event:'INSERT',schema:'public',table:'drain_telemetry'},p=>onInsert(p.new))
+ .subscribe(s=>{if(s==='SUBSCRIBED')setLive('online');else if(['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(s)){setLive('offline');setTimeout(subscribe,4000)}})}
+async function load(){try{const {data,error}=await sb.from('drain_telemetry').select('*').order('created_at',{ascending:false}).limit(200);if(error)throw error;
+ allReadings=data.map(norm);console.log('✅ Loaded '+allReadings.length);rebuildZones();
+ if(allReadings.length){allReadings.slice(0,15).reverse().forEach(updateFeed);updateAll(allReadings[0])}else renderZones();updateCharts()}
+ catch(e){console.error('Supabase error',e);setLive('offline');setTimeout(load,5000)}}
+window.addEventListener('online',()=>{load();subscribe()});window.addEventListener('offline',()=>setLive('offline'));
+(function init(){initMap();initCharts();renderDis();renderZones();renderRecords();renderHW();
+ sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);load().then(()=>{subscribe();loadRange()})})();
+</script></body></html>
